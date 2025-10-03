@@ -8,22 +8,21 @@ class ThemeToggle extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: IconButton(
-        icon: Icon(
-          ref.watch(appThemeModeProvider) == AppThemeMode.dark
-              ? Icons.wb_sunny_outlined
-              : Icons.nightlight_round,
-        ),
-        onPressed: () {
-          final currentMode = ref.read(appThemeModeProvider);
-          final newMode = currentMode == AppThemeMode.dark
-              ? AppThemeMode.light
-              : AppThemeMode.dark;
-          ref.read(appThemeModeProvider.notifier).state = newMode;
-        },
+    final mode = ref.watch(appThemeModeProvider);
+    final isDark = mode == AppThemeMode.dark;
+    return IconButton(
+      onPressed: () {
+        ref.read(appThemeModeProvider.notifier).toggleTheme();
+      },
+      icon: Icon(
+        isDark ? Icons.wb_sunny_outlined : Icons.nightlight_round,
+        size: 28,
+        semanticLabel: isDark
+            ? 'Switch to light theme'
+            : 'Switch to dark theme',
       ),
+      tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+      color: isDark ? Colors.yellow : Colors.blueGrey,
     );
   }
 }

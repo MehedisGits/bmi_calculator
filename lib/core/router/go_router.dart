@@ -1,7 +1,8 @@
+import 'package:bmi_calculator/app.dart';
 import 'package:go_router/go_router.dart';
 
-final router = GoRouter(
+final appRouter = GoRouter(
   routes: [
-    // Define your routes here
+    GoRoute(path: '/', builder: (c, s) => const BMIHomePage())
   ],
 );

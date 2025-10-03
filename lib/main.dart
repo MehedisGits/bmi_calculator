@@ -1,13 +1,22 @@
 import 'package:bmi_calculator/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'app.dart';
 import 'core/di/theme_provider.dart';
+import 'core/prefs/shared_prefs_provider.dart';
+import 'core/router/go_router.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: BMICalculatorApp()));
+  final prefs = await SharedPreferences.getInstance();
+
+  runApp(
+    ProviderScope(
+      overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
+      child: const BMICalculatorApp(),
+    ),
+  );
 }
 
 class BMICalculatorApp extends ConsumerWidget {
@@ -15,15 +24,14 @@ class BMICalculatorApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = ref.watch(appThemeProvider);
-    return MaterialApp(
+    final mode = ref.watch(appThemeModeProvider);
+    return MaterialApp.router(
       title: 'BMI Calculator',
       debugShowCheckedModeBanner: false,
-      theme: theme,
-      themeMode: ref.watch(appThemeModeProvider) == AppThemeMode.dark
-          ? ThemeMode.dark
-          : ThemeMode.light,
-      home: const BMIHomePage(),
+      theme: AppTheme.getThemeData(AppThemeMode.light),
+      darkTheme: AppTheme.getThemeData(AppThemeMode.dark),
+      themeMode: mode == AppThemeMode.dark ? ThemeMode.dark : ThemeMode.light,
+      routerConfig: appRouter,
     );
   }
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Enum for easily switching between light and dark modes.
+/// Enum for switching between light and dark modes.
 enum AppThemeMode { light, dark }
 
-/// Centralized Theme System for the app.
+/// Centralized Theme System (Material 3, minimal, scalable).
 class AppTheme {
   const AppTheme._();
 
@@ -19,20 +19,11 @@ class AppTheme {
       useMaterial3: true,
       fontFamily: _fontFamily,
       visualDensity: VisualDensity.adaptivePlatformDensity,
-      textTheme: TextTheme(
-        titleLarge: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: isDark ? Colors.white : Colors.black,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 16,
-          color: isDark ? Colors.white70 : Colors.black87,
-        ),
-        bodySmall: TextStyle(
-          fontSize: 14,
-          color: isDark ? Colors.white60 : Colors.black54,
-        ),
+      // Keep typography minimal; let M3 handle most colors.
+      textTheme: const TextTheme(
+        titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        bodyMedium: TextStyle(fontSize: 16),
+        bodySmall: TextStyle(fontSize: 14),
       ),
     );
 
@@ -42,9 +33,7 @@ class AppTheme {
         elevation: 0,
         backgroundColor: base.colorScheme.surface,
         foregroundColor: base.colorScheme.onSurface,
-        titleTextStyle: base.textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
+        titleTextStyle: base.textTheme.titleLarge,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -64,7 +53,7 @@ class AppTheme {
         side: BorderSide.none,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
-      buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
+      // Old ButtonTheme is legacy—keep minimal; M3 Buttons look great by default.
     );
   }
 }
