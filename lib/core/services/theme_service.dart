@@ -72,6 +72,11 @@ class ThemeService {
   BorderRadius get buttonRadius => AppRadius.button;
   BorderRadius get cardRadius => AppRadius.card;
   BorderRadius get inputRadius => AppRadius.input;
+  
+  // Additional border radius getters for consistency
+  BorderRadius get borderRadiusSmall => BorderRadius.circular(AppSizes.radiusSmall);
+  BorderRadius get borderRadiusMedium => BorderRadius.circular(AppSizes.radiusMedium);
+  BorderRadius get borderRadiusLarge => BorderRadius.circular(AppSizes.radiusLarge);
 
   // MARK: - Component Sizes
   double get buttonHeight => AppSizes.buttonHeight;
@@ -80,6 +85,33 @@ class ThemeService {
   double get bmiScoreSize => AppSizes.bmiScoreSize;
   double get healthTipCardHeight => AppSizes.healthTipCardHeight;
   double get sliderHeight => AppSizes.sliderHeight;
+  
+  // MARK: - Icon Sizes
+  double get iconSizeSmall => AppSizes.iconSmall;
+  double get iconSizeMedium => AppSizes.iconMedium;
+  double get iconSizeLarge => AppSizes.iconLarge;
+  
+  // MARK: - Shadow Styles
+  BoxShadow get shadowCard => BoxShadow(
+    color: Colors.black.withOpacity(0.1),
+    blurRadius: 8,
+    offset: const Offset(0, 2),
+    spreadRadius: 0,
+  );
+  
+  BoxShadow get shadowButton => BoxShadow(
+    color: healthPrimary.withOpacity(0.2),
+    blurRadius: 12,
+    offset: const Offset(0, 4),
+    spreadRadius: 0,
+  );
+  
+  BoxShadow get shadowError => BoxShadow(
+    color: healthError.withOpacity(0.2),
+    blurRadius: 8,
+    offset: const Offset(0, 2),
+    spreadRadius: 0,
+  );
 
   // MARK: - Typography Helpers
   TextStyle? get heroText => textTheme.displayLarge;

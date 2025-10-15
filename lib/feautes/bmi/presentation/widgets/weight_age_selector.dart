@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/theme_service.dart';
+import '../../../../core/services/haptic_service.dart';
 
-/// Interactive weight and age selector with counter-style controls
-/// Provides precise input with visual feedback and micro-interactions
-class WeightAgeSelector extends StatefulWidget {
+/// Enhanced weight and age selector with visual dots and unified counter design
+/// Provides consistent interaction pattern with micro-interactions and haptic feedback
+class WeightAgeSelector extends ConsumerStatefulWidget {
   final double value;
   final double min;
   final double max;
@@ -24,15 +25,15 @@ class WeightAgeSelector extends StatefulWidget {
   });
 
   @override
-  State<WeightAgeSelector> createState() => _WeightAgeSelectorState();
+  ConsumerState<WeightAgeSelector> createState() => _WeightAgeSelectorState();
 }
 
-class _WeightAgeSelectorState extends State<WeightAgeSelector>
+class _WeightAgeSelectorState extends ConsumerState<WeightAgeSelector>
     with TickerProviderStateMixin {
   late AnimationController _scaleController;
-  late AnimationController _colorController;
+  late AnimationController _dotsController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _colorAnimation;
+  late Animation<double> _dotsAnimation;
 
   @override
   void initState() {
@@ -46,7 +47,7 @@ class _WeightAgeSelectorState extends State<WeightAgeSelector>
       vsync: this,
     );
 
-    _colorController = AnimationController(
+    _dotsController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
@@ -56,14 +57,14 @@ class _WeightAgeSelectorState extends State<WeightAgeSelector>
       end: 1.05,
     ).animate(CurvedAnimation(
       parent: _scaleController,
-      curve: Curves.easeInOut,
+      curve: Curves.easeOut,
     ));
 
-    _colorAnimation = Tween<double>(
+    _dotsAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(
-      parent: _colorController,
+      parent: _dotsController,
       curve: Curves.easeInOut,
     ));
   }
@@ -71,81 +72,130 @@ class _WeightAgeSelectorState extends State<WeightAgeSelector>
   @override
   void dispose() {
     _scaleController.dispose();
-    _colorController.dispose();
+    _dotsController.dispose();
     super.dispose();
   }
 
   void _increment() {
-    final increment = widget.isInteger ? 1.0 : 0.5;
-    final newValue = (widget.value + increment).clamp(widget.min, widget.max);
-    
+    final step = widget.isInteger ? 1.0 : 0.5;
+    final newValue = (widget.value + step).clamp(widget.min, widget.max);
     if (newValue != widget.value) {
-      HapticFeedback.lightImpact();
       _triggerFeedback();
-      widget.onChanged(newValue);
+      widget.onChanged(widget.isInteger ? newValue.roundToDouble() : newValue);
     }
   }
 
   void _decrement() {
-    final decrement = widget.isInteger ? 1.0 : 0.5;
-    final newValue = (widget.value - decrement).clamp(widget.min, widget.max);
-    
+    final step = widget.isInteger ? 1.0 : 0.5;
+    final newValue = (widget.value - step).clamp(widget.min, widget.max);
     if (newValue != widget.value) {
-      HapticFeedback.lightImpact();
       _triggerFeedback();
-      widget.onChanged(newValue);
+      widget.onChanged(widget.isInteger ? newValue.roundToDouble() : newValue);
     }
   }
 
   void _triggerFeedback() {
-    _scaleController.forward().then((_) {
-      _scaleController.reverse();
-    });
-    _colorController.forward().then((_) {
-      _colorController.reverse();
-    });
+    ref.read(hapticServiceProvider).light();
+    _scaleController.forward().then((_) => _scaleController.reverse());
+    _dotsController.forward().then((_) => _dotsController.reverse());
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = context.themeService;
+    final color = widget.unit == 'kg' ? theme.healthPrimary : theme.healthSecondary;
     
     return AnimatedBuilder(
-      animation: Listenable.merge([_scaleAnimation, _colorAnimation]),
+      animation: Listenable.merge([_scaleAnimation, _dotsAnimation]),
       builder: (context, child) {
         return Transform.scale(
           scale: _scaleAnimation.value,
           child: Container(
+            padding: EdgeInsets.all(theme.paddingMedium),
             decoration: BoxDecoration(
-              color: theme.healthPrimary.withOpacity(_colorAnimation.value * 0.1),
-              borderRadius: theme.cardRadius,
+              color: theme.colorScheme.surfaceContainerLow,
+              borderRadius: theme.borderRadiusMedium,
+              border: Border.all(
+                color: color.withOpacity(0.2 + (_dotsAnimation.value * 0.3)),
+                width: 1,
+              ),
+              boxShadow: [
+                if (_dotsAnimation.value > 0)
+                  BoxShadow(
+                    color: color.withOpacity(0.1 * _dotsAnimation.value),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+              ],
             ),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Increment Button
-                _CounterButton(
-                  icon: Icons.add,
-                  onPressed: widget.value < widget.max ? _increment : null,
+                // Label row
+                _CounterLabel(
+                  icon: widget.unit == 'kg' ? '⚖️' : '🎂',
+                  label: widget.unit == 'kg' ? 'Weight' : 'Age',
                   theme: theme,
                 ),
-
-                SizedBox(height: theme.spaceMedium),
-
-                // Value Display
-                _ValueDisplay(
+                
+                SizedBox(height: theme.spaceSmall),
+                
+                // Visual dots representation
+                _VisualDots(
                   value: widget.value,
-                  unit: widget.unit,
-                  isInteger: widget.isInteger,
+                  min: widget.min,
+                  max: widget.max,
+                  color: color,
+                  animation: _dotsAnimation.value,
                   theme: theme,
                 ),
-
-                SizedBox(height: theme.spaceMedium),
-
-                // Decrement Button
-                _CounterButton(
-                  icon: Icons.remove,
-                  onPressed: widget.value > widget.min ? _decrement : null,
-                  theme: theme,
+                
+                SizedBox(height: theme.spaceSmall),
+                
+                // Value display and controls
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _CounterButton(
+                      icon: Icons.remove,
+                      onPressed: widget.value > widget.min ? _decrement : null,
+                      color: color,
+                      theme: theme,
+                    ),
+                    
+                    // Current value
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: theme.paddingSmall,
+                        vertical: theme.paddingXS,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            color.withOpacity(0.1),
+                            color.withOpacity(0.05),
+                          ],
+                        ),
+                        borderRadius: theme.borderRadiusSmall,
+                      ),
+                      child: Text(
+                        widget.isInteger 
+                            ? '${widget.value.toInt()} ${widget.unit}'
+                            : '${widget.value.toStringAsFixed(1)} ${widget.unit}',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: color,
+                        ),
+                      ),
+                    ),
+                    
+                    _CounterButton(
+                      icon: Icons.add,
+                      onPressed: widget.value < widget.max ? _increment : null,
+                      color: color,
+                      theme: theme,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -156,15 +206,121 @@ class _WeightAgeSelectorState extends State<WeightAgeSelector>
   }
 }
 
-/// Counter button with visual feedback
+/// Counter label with icon and text
+class _CounterLabel extends StatelessWidget {
+  final String icon;
+  final String label;
+  final ThemeService theme;
+
+  const _CounterLabel({
+    required this.icon,
+    required this.label,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          icon,
+          style: theme.textTheme.titleMedium?.copyWith(fontSize: 16),
+        ),
+        SizedBox(width: theme.spaceXS / 2),
+        Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w500,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Visual dots representation following UX strategy
+class _VisualDots extends StatelessWidget {
+  final double value;
+  final double min;
+  final double max;
+  final Color color;
+  final double animation;
+  final ThemeService theme;
+
+  const _VisualDots({
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.color,
+    required this.animation,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const dotCount = 10;
+    final normalizedValue = ((value - min) / (max - min)).clamp(0.0, 1.0);
+    final activeDots = (normalizedValue * dotCount).round();
+    
+    return SizedBox(
+      height: 20,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(dotCount, (index) {
+          final isActive = index < activeDots;
+          final animationOffset = (index / dotCount) * 0.2;
+          final currentAnimation = (animation - animationOffset).clamp(0.0, 1.0);
+          
+          return AnimatedContainer(
+            duration: Duration(milliseconds: 100 + (index * 20)),
+            width: isActive ? (8 + (2 * currentAnimation)) : 6,
+            height: isActive ? (8 + (2 * currentAnimation)) : 6,
+            margin: EdgeInsets.symmetric(horizontal: 1.5),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: isActive
+                  ? LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        color.withOpacity(0.8 + (0.2 * currentAnimation)),
+                        color.withOpacity(0.6 + (0.2 * currentAnimation)),
+                      ],
+                    )
+                  : null,
+              color: isActive 
+                  ? null 
+                  : theme.colorScheme.onSurfaceVariant.withOpacity(0.2),
+              boxShadow: isActive && currentAnimation > 0
+                  ? [
+                      BoxShadow(
+                        color: color.withOpacity(0.4 * currentAnimation),
+                        blurRadius: 4 * currentAnimation,
+                        spreadRadius: 1 * currentAnimation,
+                      ),
+                    ]
+                  : null,
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+/// Counter button with consistent styling
 class _CounterButton extends StatefulWidget {
   final IconData icon;
   final VoidCallback? onPressed;
+  final Color color;
   final ThemeService theme;
 
   const _CounterButton({
     required this.icon,
     required this.onPressed,
+    required this.color,
     required this.theme,
   });
 
@@ -173,402 +329,77 @@ class _CounterButton extends StatefulWidget {
 }
 
 class _CounterButtonState extends State<_CounterButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
+    with TickerProviderStateMixin {
+  late AnimationController _pressController;
+  late Animation<double> _pressAnimation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _pressController = AnimationController(
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
+    _pressAnimation = Tween<double>(
       begin: 1.0,
       end: 0.9,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+    ).animate(_pressController);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _pressController.dispose();
     super.dispose();
-  }
-
-  void _onTapDown(TapDownDetails details) {
-    _controller.forward();
-  }
-
-  void _onTapUp(TapUpDetails details) {
-    _controller.reverse();
-  }
-
-  void _onTapCancel() {
-    _controller.reverse();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isEnabled = widget.onPressed != null;
-    
     return AnimatedBuilder(
-      animation: _scaleAnimation,
+      animation: _pressAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _scaleAnimation.value,
+          scale: _pressAnimation.value,
           child: GestureDetector(
-            onTapDown: isEnabled ? _onTapDown : null,
-            onTapUp: isEnabled ? _onTapUp : null,
-            onTapCancel: isEnabled ? _onTapCancel : null,
+            onTapDown: (_) => _pressController.forward(),
+            onTapUp: (_) => _pressController.reverse(),
+            onTapCancel: () => _pressController.reverse(),
             onTap: widget.onPressed,
             child: Container(
-              width: 48,
-              height: 48,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
-                color: isEnabled
-                    ? widget.theme.healthPrimary
-                    : widget.theme.colorScheme.outline.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: isEnabled
-                    ? [
-                        BoxShadow(
-                          color: widget.theme.healthPrimary.withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                    : [],
+                gradient: widget.onPressed != null
+                    ? LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          widget.color.withOpacity(0.1),
+                          widget.color.withOpacity(0.05),
+                        ],
+                      )
+                    : null,
+                color: widget.onPressed == null
+                    ? widget.theme.colorScheme.surfaceContainerHighest
+                    : null,
+                borderRadius: widget.theme.borderRadiusSmall,
+                border: Border.all(
+                  color: widget.onPressed != null
+                      ? widget.color.withOpacity(0.3)
+                      : widget.theme.colorScheme.outlineVariant.withOpacity(0.5),
+                  width: 1,
+                ),
               ),
               child: Icon(
                 widget.icon,
-                color: isEnabled ? Colors.white : widget.theme.colorScheme.outline,
-                size: 24,
+                size: widget.theme.iconSizeSmall,
+                color: widget.onPressed != null
+                    ? widget.color
+                    : widget.theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ),
         );
       },
-    );
-  }
-}
-
-/// Value display with animated transitions
-class _ValueDisplay extends StatelessWidget {
-  final double value;
-  final String unit;
-  final bool isInteger;
-  final ThemeService theme;
-
-  const _ValueDisplay({
-    required this.value,
-    required this.unit,
-    required this.isInteger,
-    required this.theme,
-  });
-
-  String get formattedValue {
-    return isInteger ? value.round().toString() : value.toStringAsFixed(1);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: theme.paddingLarge,
-        vertical: theme.paddingMedium,
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          // Animated value
-          AnimatedSwitcher(
-            duration: theme.fastAnimation,
-            transitionBuilder: (child, animation) {
-              return SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 0.3),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: FadeTransition(
-                  opacity: animation,
-                  child: child,
-                ),
-              );
-            },
-            child: Text(
-              formattedValue,
-              key: ValueKey(formattedValue),
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.healthPrimary,
-              ),
-            ),
-          ),
-          
-          SizedBox(height: theme.spaceXS),
-          
-          // Unit label
-          Text(
-            unit,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.healthOnSurface.withOpacity(0.7),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Advanced selector with gesture controls and quick increment
-class AdvancedWeightAgeSelector extends StatefulWidget {
-  final double value;
-  final double min;
-  final double max;
-  final String unit;
-  final bool isInteger;
-  final ValueChanged<double> onChanged;
-
-  const AdvancedWeightAgeSelector({
-    super.key,
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.unit,
-    required this.onChanged,
-    this.isInteger = false,
-  });
-
-  @override
-  State<AdvancedWeightAgeSelector> createState() => _AdvancedWeightAgeSelectorState();
-}
-
-class _AdvancedWeightAgeSelectorState extends State<AdvancedWeightAgeSelector> {
-  late TextEditingController _textController;
-  bool _isEditing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _textController = TextEditingController(
-      text: widget.isInteger 
-          ? widget.value.round().toString() 
-          : widget.value.toStringAsFixed(1),
-    );
-  }
-
-  @override
-  void didUpdateWidget(AdvancedWeightAgeSelector oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.value != widget.value && !_isEditing) {
-      _textController.text = widget.isInteger 
-          ? widget.value.round().toString() 
-          : widget.value.toStringAsFixed(1);
-    }
-  }
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
-  }
-
-  void _onTextSubmitted(String value) {
-    final newValue = double.tryParse(value);
-    if (newValue != null) {
-      final clampedValue = newValue.clamp(widget.min, widget.max);
-      widget.onChanged(clampedValue);
-    }
-    setState(() => _isEditing = false);
-  }
-
-  void _startEditing() {
-    setState(() => _isEditing = true);
-    _textController.selection = TextSelection(
-      baseOffset: 0,
-      extentOffset: _textController.text.length,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.themeService;
-    
-    return Column(
-      children: [
-        // Quick increment buttons
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _QuickButton(
-              label: '+10',
-              onPressed: () {
-                final increment = widget.isInteger ? 10.0 : 10.0;
-                final newValue = (widget.value + increment).clamp(widget.min, widget.max);
-                if (newValue != widget.value) {
-                  HapticFeedback.mediumImpact();
-                  widget.onChanged(newValue);
-                }
-              },
-              theme: theme,
-            ),
-            SizedBox(width: theme.spaceSmall),
-            _QuickButton(
-              label: '+5',
-              onPressed: () {
-                final increment = widget.isInteger ? 5.0 : 5.0;
-                final newValue = (widget.value + increment).clamp(widget.min, widget.max);
-                if (newValue != widget.value) {
-                  HapticFeedback.lightImpact();
-                  widget.onChanged(newValue);
-                }
-              },
-              theme: theme,
-            ),
-          ],
-        ),
-
-        SizedBox(height: theme.spaceMedium),
-
-        // Editable value display
-        GestureDetector(
-          onTap: _startEditing,
-          child: Container(
-            padding: EdgeInsets.all(theme.paddingLarge),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest,
-              borderRadius: theme.cardRadius,
-              border: Border.all(
-                color: _isEditing 
-                    ? theme.healthPrimary 
-                    : theme.colorScheme.outline.withOpacity(0.2),
-                width: _isEditing ? 2 : 1,
-              ),
-            ),
-            child: _isEditing 
-                ? TextField(
-                    controller: _textController,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.healthPrimary,
-                    ),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'Enter ${widget.unit}',
-                    ),
-                    onSubmitted: _onTextSubmitted,
-                    onTapOutside: (_) {
-                      _onTextSubmitted(_textController.text);
-                    },
-                    autofocus: true,
-                  )
-                : Column(
-                    children: [
-                      Text(
-                        widget.isInteger 
-                            ? widget.value.round().toString()
-                            : widget.value.toStringAsFixed(1),
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.healthPrimary,
-                        ),
-                      ),
-                      SizedBox(height: theme.spaceXS),
-                      Text(
-                        widget.unit,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.healthOnSurface.withOpacity(0.7),
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-        ),
-
-        SizedBox(height: theme.spaceMedium),
-
-        // Quick decrement buttons
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _QuickButton(
-              label: '-5',
-              onPressed: () {
-                final decrement = widget.isInteger ? 5.0 : 5.0;
-                final newValue = (widget.value - decrement).clamp(widget.min, widget.max);
-                if (newValue != widget.value) {
-                  HapticFeedback.lightImpact();
-                  widget.onChanged(newValue);
-                }
-              },
-              theme: theme,
-            ),
-            SizedBox(width: theme.spaceSmall),
-            _QuickButton(
-              label: '-10',
-              onPressed: () {
-                final decrement = widget.isInteger ? 10.0 : 10.0;
-                final newValue = (widget.value - decrement).clamp(widget.min, widget.max);
-                if (newValue != widget.value) {
-                  HapticFeedback.mediumImpact();
-                  widget.onChanged(newValue);
-                }
-              },
-              theme: theme,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-/// Quick increment/decrement button
-class _QuickButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onPressed;
-  final ThemeService theme;
-
-  const _QuickButton({
-    required this.label,
-    required this.onPressed,
-    required this.theme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        backgroundColor: theme.colorScheme.surfaceContainerHighest,
-        foregroundColor: theme.healthPrimary,
-        padding: EdgeInsets.symmetric(
-          horizontal: theme.paddingMedium,
-          vertical: theme.paddingSmall,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-      child: Text(
-        label,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-      ),
     );
   }
 }

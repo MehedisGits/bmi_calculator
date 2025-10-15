@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:animate_do/animate_do.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/theme_service.dart';
 import '../../../../core/services/haptic_service.dart';
 import '../../data/entities/bmi_input.dart';
 
-/// Interactive gender selector with smooth animations and visual feedback
-/// Provides an intuitive way to select gender with micro-interactions
+/// Enhanced gender selector with horizontal toggle following UX strategy
+/// Provides streamlined selection with smooth animations and micro-interactions
 class GenderSelector extends ConsumerStatefulWidget {
   final Gender selectedGender;
   final ValueChanged<Gender> onGenderChanged;
@@ -25,8 +23,8 @@ class GenderSelector extends ConsumerStatefulWidget {
 
 class _GenderSelectorState extends ConsumerState<GenderSelector>
     with TickerProviderStateMixin {
-  late AnimationController _scaleController;
-  late Animation<double> _scaleAnimation;
+  late AnimationController _selectionController;
+  late Animation<double> _selectionAnimation;
 
   @override
   void initState() {
@@ -35,31 +33,31 @@ class _GenderSelectorState extends ConsumerState<GenderSelector>
   }
 
   void _initializeAnimations() {
-    _scaleController = AnimationController(
+    _selectionController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
+    _selectionAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
     ).animate(CurvedAnimation(
-      parent: _scaleController,
+      parent: _selectionController,
       curve: Curves.easeInOut,
     ));
   }
 
   @override
   void dispose() {
-    _scaleController.dispose();
+    _selectionController.dispose();
     super.dispose();
   }
 
-  void _onGenderTap(Gender gender) {
+  void _onGenderSelected(Gender gender) {
     if (gender != widget.selectedGender) {
-      ref.read(hapticServiceProvider).medium();
-      _scaleController.forward().then((_) {
-        _scaleController.reverse();
+      ref.read(hapticServiceProvider).light();
+      _selectionController.forward().then((_) {
+        _selectionController.reverse();
       });
       widget.onGenderChanged(gender);
     }
@@ -69,199 +67,152 @@ class _GenderSelectorState extends ConsumerState<GenderSelector>
   Widget build(BuildContext context) {
     final theme = context.themeService;
     
-    return Row(
-      children: Gender.values.map((gender) {
-        final isSelected = widget.selectedGender == gender;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Label row
+        _InputLabel(
+          icon: '👤',
+          label: 'I am',
+          theme: theme,
+        ),
         
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: theme.paddingSmall),
-            child: _GenderCard(
-              gender: gender,
-              isSelected: isSelected,
-              onTap: () => _onGenderTap(gender),
-              scaleAnimation: _scaleAnimation,
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-/// Individual gender card with animations and visual feedback
-class _GenderCard extends StatelessWidget {
-  final Gender gender;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final Animation<double> scaleAnimation;
-
-  const _GenderCard({
-    required this.gender,
-    required this.isSelected,
-    required this.onTap,
-    required this.scaleAnimation,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.themeService;
-    
-    return AnimatedBuilder(
-      animation: scaleAnimation,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: isSelected ? scaleAnimation.value : 1.0,
-          child: GestureDetector(
-            onTap: onTap,
-            child: AnimatedContainer(
-              duration: theme.mediumAnimation,
-              curve: Curves.easeInOut,
-              padding: EdgeInsets.symmetric(
-                vertical: theme.paddingLarge,
-                horizontal: theme.paddingMedium,
-              ),
-              decoration: BoxDecoration(
-                gradient: isSelected
-                    ? LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          gender.color.withOpacity(0.15),
-                          gender.color.withOpacity(0.05),
-                        ],
-                      )
-                    : null,
-                border: Border.all(
-                  color: isSelected
-                      ? gender.color
-                      : theme.colorScheme.outline.withOpacity(0.3),
-                  width: isSelected ? 2 : 1,
-                ),
-                borderRadius: theme.cardRadius,
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: gender.color.withOpacity(0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : [],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Gender Icon with Animation
-                  AnimatedDefaultTextStyle(
-                    duration: theme.mediumAnimation,
-                    style: TextStyle(
-                      fontSize: isSelected ? 48 : 40,
-                    ),
-                    child: ZoomIn(
-                      duration: theme.fastAnimation,
-                      child: Text(gender.icon),
-                    ),
-                  ),
-                  
-                  SizedBox(height: theme.spaceMedium),
-                  
-                  // Gender Label
-                  AnimatedDefaultTextStyle(
-                    duration: theme.mediumAnimation,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? gender.color : theme.healthOnSurface,
-                    ) ?? const TextStyle(),
-                    child: Text(gender.label),
-                  ),
-                  
-                  // Selection Indicator
-                  SizedBox(height: theme.spaceSmall),
-                  AnimatedContainer(
-                    duration: theme.mediumAnimation,
-                    width: isSelected ? 32 : 0,
-                    height: 3,
-                    decoration: BoxDecoration(
-                      color: gender.color,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// Gender selection with segmented control style (alternative design)
-class GenderSegmentedSelector extends ConsumerWidget {
-  final Gender selectedGender;
-  final ValueChanged<Gender> onGenderChanged;
-
-  const GenderSegmentedSelector({
-    super.key,
-    required this.selectedGender,
-    required this.onGenderChanged,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = context.themeService;
-    
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: theme.cardRadius,
-      ),
-      child: Row(
-        children: Gender.values.map((gender) {
-          final isSelected = selectedGender == gender;
-          
-          return Expanded(
-            child: GestureDetector(
-              onTap: () {
-                ref.read(hapticServiceProvider).light();
-                onGenderChanged(gender);
-              },
-              child: AnimatedContainer(
-                duration: theme.mediumAnimation,
-                padding: EdgeInsets.symmetric(
-                  vertical: theme.paddingMedium,
-                  horizontal: theme.paddingSmall,
-                ),
+        SizedBox(height: theme.spaceSmall),
+        
+        // Toggle interface
+        AnimatedBuilder(
+          animation: _selectionAnimation,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: 1.0 - (_selectionAnimation.value * 0.02),
+              child: Container(
+                height: 56,
                 decoration: BoxDecoration(
-                  color: isSelected ? theme.healthPrimary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(theme.radiusMedium.topLeft.x - 4),
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: theme.borderRadiusMedium,
+                  border: Border.all(
+                    color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+                    width: 1,
+                  ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Stack(
                   children: [
-                    Text(
-                      gender.icon,
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                    SizedBox(width: theme.spaceSmall),
-                    Text(
-                      gender.label,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: isSelected
-                            ? Colors.white
-                            : theme.healthOnSurface,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    // Selection indicator (sliding background)
+                    AnimatedPositioned(
+                      duration: theme.fastAnimation,
+                      curve: Curves.easeInOut,
+                      left: widget.selectedGender == Gender.male ? 4 : null,
+                      right: widget.selectedGender == Gender.female ? 4 : null,
+                      top: 4,
+                      bottom: 4,
+                      width: (MediaQuery.of(context).size.width - 64) / 2 - 8,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              widget.selectedGender.color.withOpacity(0.9),
+                              widget.selectedGender.color.withOpacity(0.7),
+                            ],
+                          ),
+                          borderRadius: theme.borderRadiusSmall,
+                          boxShadow: [
+                            BoxShadow(
+                              color: widget.selectedGender.color.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
                       ),
+                    ),
+                    
+                    // Gender options
+                    Row(
+                      children: Gender.values.map((gender) {
+                        final isSelected = widget.selectedGender == gender;
+                        
+                        return Expanded(
+                          child: GestureDetector(
+                            onTap: () => _onGenderSelected(gender),
+                            child: Container(
+                              height: double.infinity,
+                              decoration: BoxDecoration(
+                                borderRadius: theme.borderRadiusSmall,
+                              ),
+                              child: Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      gender.icon,
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                    SizedBox(width: theme.spaceXS),
+                                    AnimatedDefaultTextStyle(
+                                      duration: theme.fastAnimation,
+                                      style: theme.textTheme.labelLarge?.copyWith(
+                                        color: isSelected 
+                                          ? Colors.white
+                                          : theme.colorScheme.onSurface,
+                                        fontWeight: isSelected 
+                                          ? FontWeight.w600 
+                                          : FontWeight.w500,
+                                      ) ?? const TextStyle(),
+                                      child: Text(gender.label),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ],
                 ),
               ),
-            ),
-          );
-        }).toList(),
-      ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+/// Reusable input label component following design system
+class _InputLabel extends StatelessWidget {
+  final String icon;
+  final String label;
+  final ThemeService theme;
+
+  const _InputLabel({
+    required this.icon,
+    required this.label,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          icon,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontSize: 18,
+          ),
+        ),
+        SizedBox(width: theme.spaceXS),
+        Text(
+          label,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+            color: theme.colorScheme.onSurface,
+            letterSpacing: -0.1,
+          ),
+        ),
+      ],
     );
   }
 }

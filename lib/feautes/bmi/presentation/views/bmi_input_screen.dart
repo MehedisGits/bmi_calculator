@@ -5,6 +5,7 @@ import 'package:animate_do/animate_do.dart';
 import '../../../../core/services/theme_service.dart';
 import '../../../../core/services/navigation_service.dart';
 import '../../../../core/utils/responsive_layout.dart';
+import '../providers/enhanced_bmi_input_provider.dart';
 import '../widgets/bmi_input_form.dart';
 import '../widgets/bmi_help_button.dart';
 import '../widgets/bmi_error_display.dart';
@@ -19,7 +20,7 @@ class BMIInputScreen extends ConsumerWidget {
     final navigation = ContextNavigationService(context);
     
     return HealthLayout(
-      title: 'Health Assessment',
+      title: 'Your Health Snapshot',
       actions: const [BMIHelpButton()],
       child: BMIInputScreenContent(
         onNavigateToResult: navigation.navigateToResult,
@@ -41,102 +42,90 @@ class BMIInputScreenContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.themeService;
     
-    return CustomScrollView(
+    return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      slivers: [
-        // Header Section
-        SliverToBoxAdapter(
-          child: FadeInDown(
+      padding: EdgeInsets.all(theme.paddingMedium),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Compact Header
+          FadeInDown(
+            duration: theme.fastAnimation,
+            child: _CompactHeader(),
+          ),
+          
+          SizedBox(height: theme.spaceLarge),
+
+          // Error Display (if any)
+          const BMIErrorDisplay(),
+
+          // Enhanced BMI Input Form
+          FadeInUp(
             duration: theme.mediumAnimation,
-            child: BMIInputHeader(),
+            delay: Duration(milliseconds: 200),
+            child: BMIInputForm(
+              onNavigateToResult: onNavigateToResult,
+            ),
           ),
-        ),
-
-        SliverToBoxAdapter(child: SizedBox(height: theme.spaceLarge)),
-
-        // Error Display (if any)
-        const SliverToBoxAdapter(
-          child: BMIErrorDisplay(),
-        ),
-
-        // Input Form
-        SliverToBoxAdapter(
-          child: BMIInputForm(
-            onNavigateToResult: onNavigateToResult,
+          
+          // Bottom padding for safe area
+          SizedBox(
+            height: MediaQuery.of(context).padding.bottom + theme.spaceMedium,
           ),
-        ),
-
-        // Bottom Padding
-        SliverToBoxAdapter(
-          child: SizedBox(
-            height: MediaQuery.of(context).padding.bottom + theme.spaceLarge,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
-/// Header section for BMI input screen
-class BMIInputHeader extends ConsumerWidget {
-  const BMIInputHeader({super.key});
-  
+/// Compact header following UX strategy for minimal cognitive load
+class _CompactHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.themeService;
     
-    return Container(
-      padding: theme.cardPadding,
-      margin: EdgeInsets.symmetric(horizontal: theme.paddingMedium),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.healthPrimary.withOpacity(0.1),
-            theme.healthSecondary.withOpacity(0.05),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(theme.paddingXS),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [theme.healthPrimary, theme.healthSecondary],
+                ),
+                borderRadius: theme.borderRadiusSmall,
+              ),
+              child: Icon(
+                Icons.favorite,
+                color: Colors.white,
+                size: theme.iconSizeSmall,
+              ),
+            ),
+            SizedBox(width: theme.spaceSmall),
+            Text(
+              '🎯 Quick Health Check',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.healthPrimary,
+                letterSpacing: -0.5,
+              ),
+            ),
           ],
         ),
-        borderRadius: theme.cardRadius,
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.healthPrimary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.health_and_safety,
-              color: theme.healthPrimary,
-              size: 24,
+        SizedBox(height: theme.spaceXS),
+        Padding(
+          padding: EdgeInsets.only(left: theme.iconSizeSmall + theme.spaceSmall),
+          child: Text(
+            'Discover personalized health insights in seconds',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              height: 1.3,
             ),
           ),
-          SizedBox(width: theme.spaceMedium),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Health Assessment',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.healthOnSurface,
-                  ),
-                ),
-                SizedBox(height: theme.spaceXS),
-                Text(
-                  'Enter your details for personalized insights',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.healthOnSurface.withOpacity(0.7),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
