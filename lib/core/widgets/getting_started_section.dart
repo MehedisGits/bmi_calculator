@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../services/theme_service.dart';
 
 /// Getting started section widget for the BMI Calculator
@@ -120,12 +121,7 @@ class GettingStartedSection extends StatelessWidget {
   }
 
   void _defaultPrimaryAction(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('BMI input screen coming soon!'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    context.push('/bmi');
   }
 
   void _defaultSecondaryAction(BuildContext context) {

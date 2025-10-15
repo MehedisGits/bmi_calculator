@@ -404,6 +404,7 @@ class ResponsiveRow extends StatelessWidget {
   Widget build(BuildContext context) {
     if (stackOnMobile && ScreenSize.isMobile(context)) {
       return Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: children
             .expand((child) => [child, SizedBox(height: spacing)])

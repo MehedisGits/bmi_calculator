@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:go_router/go_router.dart';
 
 import 'core/widgets/theme_toggle.dart';
 import 'core/utils/responsive_layout.dart';
@@ -55,13 +56,7 @@ class _BMIHomePageState extends State<BMIHomePage> {
               delay: const Duration(milliseconds: 400),
               child: GettingStartedSection(
                 onPrimaryPressed: () {
-                  // TODO: Navigate to BMI input screen
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('BMI input screen coming soon!'),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
+                  context.go('/input');
                 },
               ),
             ),
