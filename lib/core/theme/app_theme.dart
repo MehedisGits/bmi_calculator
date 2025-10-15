@@ -1,59 +1,56 @@
 import 'package:flutter/material.dart';
+import '../constants/colors.dart';
+import 'color_schemes.dart';
+import 'text_themes.dart';
+import 'component_themes.dart';
 
 /// Enum for switching between light and dark modes.
 enum AppThemeMode { light, dark }
 
-/// Centralized Theme System (Material 3, minimal, scalable).
+/// Health-focused Material 3 Theme System
+/// Main theme composition layer that orchestrates all theme modules
 class AppTheme {
   const AppTheme._();
 
-  static const _seedColor = Color(0xFF6750A4);
-  static const _fontFamily = 'Roboto';
+  // Health-focused seed color for trust and vitality
+  static const _healthPrimary = HealthColors.primary;
+  static const _fontPrimary = 'Inter';
 
+  /// Generate complete theme data optimized for health applications
   static ThemeData getThemeData(AppThemeMode mode) {
     final isDark = mode == AppThemeMode.dark;
-
+    
+    // Create base theme with health-focused colors
     final base = ThemeData(
       brightness: isDark ? Brightness.dark : Brightness.light,
-      colorSchemeSeed: _seedColor,
+      colorSchemeSeed: _healthPrimary,
       useMaterial3: true,
-      fontFamily: _fontFamily,
+      fontFamily: _fontPrimary,
       visualDensity: VisualDensity.adaptivePlatformDensity,
-      // Keep typography minimal; let M3 handle most colors.
-      textTheme: const TextTheme(
-        titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-        bodyMedium: TextStyle(fontSize: 16),
-        bodySmall: TextStyle(fontSize: 14),
-      ),
     );
 
     return base.copyWith(
-      appBarTheme: AppBarTheme(
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: base.colorScheme.surface,
-        foregroundColor: base.colorScheme.onSurface,
-        titleTextStyle: base.textTheme.titleLarge,
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: base.colorScheme.surfaceContainerLow,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        labelStyle: TextStyle(color: base.colorScheme.onSurfaceVariant),
-      ),
-      cardTheme: CardThemeData(
-        elevation: 0,
-        color: base.colorScheme.surfaceContainerHighest,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      chipTheme: base.chipTheme.copyWith(
-        side: BorderSide.none,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      // Old ButtonTheme is legacy—keep minimal; M3 Buttons look great by default.
+      // Use modular theme builders
+      colorScheme: HealthColorSchemes.buildHealthColorScheme(base.colorScheme, isDark),
+      textTheme: HealthTextThemes.buildHealthTextTheme(base.textTheme, isDark),
+      appBarTheme: HealthComponentThemes.buildAppBarTheme(base, isDark),
+      inputDecorationTheme: HealthComponentThemes.buildInputTheme(base, isDark),
+      cardTheme: HealthComponentThemes.buildCardTheme(base, isDark),
+      elevatedButtonTheme: HealthComponentThemes.buildElevatedButtonTheme(base, isDark),
+      filledButtonTheme: HealthComponentThemes.buildFilledButtonTheme(base, isDark),
+      outlinedButtonTheme: HealthComponentThemes.buildOutlinedButtonTheme(base, isDark),
+      textButtonTheme: HealthComponentThemes.buildTextButtonTheme(base, isDark),
+      chipTheme: HealthComponentThemes.buildChipTheme(base, isDark),
+      sliderTheme: HealthComponentThemes.buildSliderTheme(base, isDark),
+      progressIndicatorTheme: HealthComponentThemes.buildProgressTheme(base, isDark),
+      bottomSheetTheme: HealthComponentThemes.buildBottomSheetTheme(base, isDark),
+      snackBarTheme: HealthComponentThemes.buildSnackBarTheme(base, isDark),
     );
   }
+
+  /// Get light theme
+  static ThemeData get light => getThemeData(AppThemeMode.light);
+  
+  /// Get dark theme
+  static ThemeData get dark => getThemeData(AppThemeMode.dark);
 }
