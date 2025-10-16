@@ -1,3 +1,4 @@
+import 'package:bmi_calculator/core/services/theme_service.dart';
 import 'package:flutter/material.dart';
 import '../constants/size.dart';
 
@@ -320,7 +321,7 @@ class HealthLayout extends StatelessWidget {
     return Scaffold(
       appBar: showAppBar
           ? AppBar(
-              title: title != null ? Text(title!) : null,
+              title: title != null ? Text(title!, style: context.themeService.textTheme.headlineSmall) : null,
               actions: actions,
               centerTitle: false,
             )

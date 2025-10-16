@@ -23,7 +23,8 @@ class _BMIHomePageState extends State<BMIHomePage> {
     final theme = context.themeService;
     
     return HealthLayout(
-      title: 'BMI Intelligence',
+      title: 'Smart BMI Calculator',
+      showAppBar: true,
       actions: [
         const ThemeToggle(),
         const SizedBox(width: 8),

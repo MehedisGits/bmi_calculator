@@ -20,6 +20,7 @@ class BMIInputScreen extends ConsumerWidget {
     final navigation = ContextNavigationService(context);
     
     return HealthLayout(
+      showAppBar: false,
       title: 'Your Health Snapshot',
       actions: const [BMIHelpButton()],
       child: BMIInputScreenContent(
@@ -44,9 +45,9 @@ class BMIInputScreenContent extends ConsumerWidget {
     
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.all(theme.paddingMedium),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Compact Header
           FadeInDown(
@@ -85,9 +86,12 @@ class _CompactHeader extends ConsumerWidget {
     final theme = context.themeService;
     
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
               padding: EdgeInsets.all(theme.paddingXS),
@@ -105,7 +109,7 @@ class _CompactHeader extends ConsumerWidget {
             ),
             SizedBox(width: theme.spaceSmall),
             Text(
-              '🎯 Quick Health Check',
+              'Quick Health Check',
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: theme.healthPrimary,
@@ -119,7 +123,7 @@ class _CompactHeader extends ConsumerWidget {
           padding: EdgeInsets.only(left: theme.iconSizeSmall + theme.spaceSmall),
           child: Text(
             'Discover personalized health insights in seconds',
-            style: theme.textTheme.bodyLarge?.copyWith(
+            style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurface.withOpacity(0.7),
               height: 1.3,
             ),

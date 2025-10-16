@@ -4,7 +4,10 @@ import 'package:animate_do/animate_do.dart';
 
 import '../../../../core/services/theme_service.dart';
 import '../../../../core/config/bmi_config.dart';
+import '../../../../core/utils/responsive_layout.dart';
+import '../../../../core/widgets/icon_container.dart';
 import '../providers/bmi_input_provider.dart';
+import 'bmi_help_button.dart';
 import 'gender_selector.dart';
 import 'height_slider.dart';
 import 'weight_age_selector.dart';
@@ -117,13 +120,9 @@ class _UnifiedInputContainer extends ConsumerWidget {
           FadeInLeft(
             duration: theme.fastAnimation,
             delay: Duration(milliseconds: 200),
-            child: _InputSection(
-              title: 'Height',
-              subtitle: 'Slide to adjust your height',
-              child: HeightSlider(
-                value: inputState.input.height,
-                onChanged: ref.read(bmiInputProvider.notifier).updateHeight,
-              ),
+            child: HeightSlider(
+              value: inputState.input.height,
+              onChanged: ref.read(bmiInputProvider.notifier).updateHeight,
             ),
           ),
 
@@ -133,9 +132,10 @@ class _UnifiedInputContainer extends ConsumerWidget {
           FadeInUp(
             duration: theme.fastAnimation,
             delay: Duration(milliseconds: 300),
-            child: Row(
+            child: ResponsiveRow(
               children: [
-                Expanded(
+                Flexible(
+                  flex: 1,
                   child: WeightAgeSelector(
                     value: inputState.input.weight,
                     min: BMIConfig.weightLimits.min,
@@ -145,7 +145,8 @@ class _UnifiedInputContainer extends ConsumerWidget {
                   ),
                 ),
                 SizedBox(width: theme.spaceMedium),
-                Expanded(
+                Flexible(
+                  flex: 1,
                   child: WeightAgeSelector(
                     value: inputState.input.age.toDouble(),
                     min: BMIConfig.ageLimits.min,
@@ -183,19 +184,9 @@ class _SectionHeader extends ConsumerWidget {
 
     return Row(
       children: [
-        Container(
-          padding: EdgeInsets.all(theme.paddingSmall),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [theme.healthPrimary, theme.healthSecondary],
-            ),
-            borderRadius: theme.borderRadiusSmall,
-          ),
-          child: Icon(
-            Icons.insights,
-            color: Colors.white,
-            size: theme.iconSizeSmall,
-          ),
+        IconContainer(
+          icon: Icons.insights,
+        
         ),
         SizedBox(width: theme.spaceSmall),
         Expanded(
@@ -221,57 +212,8 @@ class _SectionHeader extends ConsumerWidget {
             ],
           ),
         ),
-      ],
-    );
-  }
-}
-
-/// Reusable input section wrapper for consistent styling
-class _InputSection extends StatelessWidget {
-  final String title;
-  final String? subtitle;
-  final Widget child;
-
-  const _InputSection({
-    required this.title,
-    this.subtitle,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.themeService;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              '📏',
-              style: theme.textTheme.titleMedium?.copyWith(fontSize: 18),
-            ),
-            SizedBox(width: theme.spaceXS),
-            Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            if (subtitle != null) ...[
-              SizedBox(width: theme.spaceXS),
-              Text(
-                '($subtitle)',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ],
-        ),
-        SizedBox(height: theme.spaceSmall),
-        child,
+        SizedBox(width: theme.spaceSmall),
+        const BMIHelpButton(),
       ],
     );
   }

@@ -371,7 +371,7 @@ class _ButtonContent extends StatelessWidget {
         ),
         SizedBox(width: theme.spaceSmall),
         Text(
-          '🧠 Get Health Intelligence',
+          'Get Health Intelligence',
           style: theme.textTheme.titleMedium?.copyWith(
             color: isEnabled ? Colors.white : theme.colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
