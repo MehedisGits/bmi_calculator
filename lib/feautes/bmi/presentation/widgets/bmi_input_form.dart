@@ -4,7 +4,7 @@ import 'package:animate_do/animate_do.dart';
 
 import '../../../../core/services/theme_service.dart';
 import '../../../../core/config/bmi_config.dart';
-import '../providers/enhanced_bmi_input_provider.dart';
+import '../providers/bmi_input_provider.dart';
 import 'gender_selector.dart';
 import 'height_slider.dart';
 import 'weight_age_selector.dart';
@@ -14,11 +14,8 @@ import 'calculate_button.dart';
 /// Consolidates all inputs into a single, cohesive interface for minimal cognitive load
 class BMIInputForm extends ConsumerStatefulWidget {
   final VoidCallback onNavigateToResult;
-  
-  const BMIInputForm({
-    super.key,
-    required this.onNavigateToResult,
-  });
+
+  const BMIInputForm({super.key, required this.onNavigateToResult});
 
   @override
   ConsumerState<BMIInputForm> createState() => _BMIInputFormState();
@@ -28,8 +25,8 @@ class _BMIInputFormState extends ConsumerState<BMIInputForm> {
   @override
   Widget build(BuildContext context) {
     final theme = context.themeService;
-    final inputState = ref.watch(enhancedBMIInputProvider);
-    
+    final inputState = ref.watch(bmiInputProvider);
+
     return Column(
       children: [
         // Unified Input Container
@@ -37,7 +34,7 @@ class _BMIInputFormState extends ConsumerState<BMIInputForm> {
           duration: theme.mediumAnimation,
           child: _UnifiedInputContainer(inputState: inputState),
         ),
-        
+
         SizedBox(height: theme.spaceLarge),
 
         // Enhanced Calculate Button
@@ -64,7 +61,7 @@ class _UnifiedInputContainer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.themeService;
-    
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: theme.paddingMedium),
       padding: EdgeInsets.all(theme.paddingLarge),
@@ -100,25 +97,22 @@ class _UnifiedInputContainer extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Section Header
-          FadeInDown(
-            duration: theme.fastAnimation,
-            child: _SectionHeader(),
-          ),
-          
+          FadeInDown(duration: theme.fastAnimation, child: _SectionHeader()),
+
           SizedBox(height: theme.spaceLarge),
-          
+
           // Gender Selection
           FadeInLeft(
             duration: theme.fastAnimation,
             delay: Duration(milliseconds: 100),
             child: GenderSelector(
               selectedGender: inputState.input.gender,
-              onGenderChanged: ref.read(enhancedBMIInputProvider.notifier).updateGender,
+              onGenderChanged: ref.read(bmiInputProvider.notifier).updateGender,
             ),
           ),
-          
+
           SizedBox(height: theme.spaceLarge),
-          
+
           // Height Slider
           FadeInLeft(
             duration: theme.fastAnimation,
@@ -128,13 +122,13 @@ class _UnifiedInputContainer extends ConsumerWidget {
               subtitle: 'Slide to adjust your height',
               child: HeightSlider(
                 value: inputState.input.height,
-                onChanged: ref.read(enhancedBMIInputProvider.notifier).updateHeight,
+                onChanged: ref.read(bmiInputProvider.notifier).updateHeight,
               ),
             ),
           ),
-          
+
           SizedBox(height: theme.spaceLarge),
-          
+
           // Weight and Age Row
           FadeInUp(
             duration: theme.fastAnimation,
@@ -147,7 +141,7 @@ class _UnifiedInputContainer extends ConsumerWidget {
                     min: BMIConfig.weightLimits.min,
                     max: BMIConfig.weightLimits.max,
                     unit: BMIConfig.weightLimits.unit,
-                    onChanged: ref.read(enhancedBMIInputProvider.notifier).updateWeight,
+                    onChanged: ref.read(bmiInputProvider.notifier).updateWeight,
                   ),
                 ),
                 SizedBox(width: theme.spaceMedium),
@@ -158,15 +152,17 @@ class _UnifiedInputContainer extends ConsumerWidget {
                     max: BMIConfig.ageLimits.max,
                     unit: BMIConfig.ageLimits.unit,
                     isInteger: true,
-                    onChanged: (age) => ref.read(enhancedBMIInputProvider.notifier).updateAge(age.round()),
+                    onChanged: (age) => ref
+                        .read(bmiInputProvider.notifier)
+                        .updateAge(age.round()),
                   ),
                 ),
               ],
             ),
           ),
-          
+
           SizedBox(height: theme.spaceSmall),
-          
+
           // Subtle feature hints
           FadeIn(
             duration: theme.mediumAnimation,
@@ -184,7 +180,7 @@ class _SectionHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.themeService;
-    
+
     return Row(
       children: [
         Container(
@@ -245,7 +241,7 @@ class _InputSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.themeService;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -286,7 +282,7 @@ class _FeatureHints extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.themeService;
-    
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

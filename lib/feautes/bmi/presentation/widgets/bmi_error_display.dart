@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/theme_service.dart';
-import '../providers/enhanced_bmi_input_provider.dart';
+import '../providers/bmi_input_provider.dart';
 
 /// Error display widget for BMI input validation
 class BMIErrorDisplay extends ConsumerWidget {
@@ -46,7 +46,7 @@ class BMIErrorDisplay extends ConsumerWidget {
             ),
           ),
           IconButton(
-            onPressed: () => ref.read(enhancedBMIInputProvider.notifier).clearError(),
+            onPressed: () => ref.read(bmiInputProvider.notifier).clearError(),
             icon: Icon(
               Icons.close,
               color: theme.colorScheme.error,

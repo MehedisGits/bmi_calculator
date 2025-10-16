@@ -5,7 +5,7 @@ import 'package:animate_do/animate_do.dart';
 import '../../../../core/services/theme_service.dart';
 import '../../../../core/services/navigation_service.dart';
 import '../../../../core/utils/responsive_layout.dart';
-import '../providers/enhanced_bmi_input_provider.dart';
+import '../providers/bmi_input_provider.dart';
 import '../widgets/bmi_input_form.dart';
 import '../widgets/bmi_help_button.dart';
 import '../widgets/bmi_error_display.dart';

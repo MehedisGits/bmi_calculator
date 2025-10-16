@@ -9,5 +9,5 @@ final calculateBMIUseCaseProvider = Provider<CalculateBMIUseCase>((ref) => Calcu
 final bmiResultProvider = Provider<BMIResult?>((ref) {
   final input = ref.watch(bmiInputProvider);
   final useCase = ref.watch(calculateBMIUseCaseProvider);
-  return useCase(input);
+  return useCase(input.input);
 });

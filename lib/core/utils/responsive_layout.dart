@@ -308,7 +308,7 @@ class HealthLayout extends StatelessWidget {
   const HealthLayout({
     super.key,
     required this.child,
-    this.showAppBar = true,
+    this.showAppBar = false,
     this.title,
     this.actions,
     this.floatingActionButton,
