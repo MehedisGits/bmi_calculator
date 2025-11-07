@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/theme_service.dart';
 import '../../../../core/services/haptic_service.dart';
+import '../../../../core/widgets/input_label.dart';
 import '../../data/entities/bmi_input.dart';
 
 /// Enhanced gender selector with horizontal toggle following UX strategy
@@ -29,12 +30,8 @@ class _GenderSelectorState extends ConsumerState<GenderSelector>
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
-  }
-
-  void _initializeAnimations() {
     _selectionController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 150),
       vsync: this,
     );
 
@@ -71,10 +68,9 @@ class _GenderSelectorState extends ConsumerState<GenderSelector>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Label row
-        _InputLabel(
+        const InputLabel(
           icon: '👤',
           label: 'I am',
-          theme: theme,
         ),
         
         SizedBox(height: theme.spaceSmall),
@@ -86,13 +82,13 @@ class _GenderSelectorState extends ConsumerState<GenderSelector>
             return Transform.scale(
               scale: 1.0 - (_selectionAnimation.value * 0.02),
               child: Container(
-                height: 56,
+                height: theme.inputHeight,
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: theme.borderRadiusMedium,
                   border: Border.all(
                     color: theme.colorScheme.outlineVariant.withOpacity(0.5),
-                    width: 1,
+                    width: theme.borderWidthNormal,
                   ),
                 ),
                 child: Stack(
@@ -175,42 +171,6 @@ class _GenderSelectorState extends ConsumerState<GenderSelector>
               ),
             );
           },
-        ),
-      ],
-    );
-  }
-}
-
-/// Reusable input label component following design system
-class _InputLabel extends StatelessWidget {
-  final String icon;
-  final String label;
-  final ThemeService theme;
-
-  const _InputLabel({
-    required this.icon,
-    required this.label,
-    required this.theme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          icon,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontSize: 18,
-          ),
-        ),
-        SizedBox(width: theme.spaceXS),
-        Text(
-          label,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-            color: theme.colorScheme.onSurface,
-            letterSpacing: -0.1,
-          ),
         ),
       ],
     );

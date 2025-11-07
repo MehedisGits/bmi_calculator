@@ -43,7 +43,7 @@ class _BMIInputFormState extends ConsumerState<BMIInputForm> {
         // Enhanced Calculate Button
         FadeInUp(
           duration: theme.mediumAnimation,
-          delay: Duration(milliseconds: 200),
+          delay: theme.fastAnimation,
           child: CalculateButton(
             input: inputState.input,
             onPressed: widget.onNavigateToResult,
@@ -74,16 +74,16 @@ class _UnifiedInputContainer extends ConsumerWidget {
           end: Alignment.bottomRight,
           colors: [
             theme.healthPrimary.withOpacity(0.08),
-            theme.healthSecondary.withOpacity(0.04),
-            Colors.white.withOpacity(0.95),
+            theme.healthSecondary.withOpacity(0.08),
+  
           ],
-          stops: const [0.0, 0.3, 1.0],
+          stops: const [0.0, 0.3],
         ),
         borderRadius: theme.borderRadiusMedium,
         boxShadow: [
           BoxShadow(
             color: theme.healthPrimary.withOpacity(0.1),
-            blurRadius: 20,
+            blurRadius: 10,
             offset: const Offset(0, 8),
             spreadRadius: 0,
           ),
@@ -107,7 +107,7 @@ class _UnifiedInputContainer extends ConsumerWidget {
           // Gender Selection
           FadeInLeft(
             duration: theme.fastAnimation,
-            delay: Duration(milliseconds: 100),
+            delay: const Duration(milliseconds: 100),
             child: GenderSelector(
               selectedGender: inputState.input.gender,
               onGenderChanged: ref.read(bmiInputProvider.notifier).updateGender,
@@ -119,7 +119,7 @@ class _UnifiedInputContainer extends ConsumerWidget {
           // Height Slider
           FadeInLeft(
             duration: theme.fastAnimation,
-            delay: Duration(milliseconds: 200),
+            delay: theme.fastAnimation,
             child: HeightSlider(
               value: inputState.input.height,
               onChanged: ref.read(bmiInputProvider.notifier).updateHeight,
@@ -131,7 +131,7 @@ class _UnifiedInputContainer extends ConsumerWidget {
           // Weight and Age Row
           FadeInUp(
             duration: theme.fastAnimation,
-            delay: Duration(milliseconds: 300),
+            delay: theme.mediumAnimation,
             child: ResponsiveRow(
               children: [
                 Flexible(
@@ -167,7 +167,7 @@ class _UnifiedInputContainer extends ConsumerWidget {
           // Subtle feature hints
           FadeIn(
             duration: theme.mediumAnimation,
-            delay: Duration(milliseconds: 400),
+            delay: theme.mediumAnimation,
             child: _FeatureHints(),
           ),
         ],

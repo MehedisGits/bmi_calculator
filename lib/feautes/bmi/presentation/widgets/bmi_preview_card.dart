@@ -151,15 +151,15 @@ class _BMIPreviewCardState extends State<BMIPreviewCard>
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: EdgeInsets.all(theme.paddingSmall),
                         decoration: BoxDecoration(
                           color: result.category.color.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: theme.borderRadiusSmall,
                         ),
                         child: Icon(
                           Icons.speed,
                           color: result.category.color,
-                          size: 20,
+                          size: theme.iconSizeSmall,
                         ),
                       ),
                       SizedBox(width: theme.spaceMedium),
@@ -238,7 +238,7 @@ class _BMIPreviewCardState extends State<BMIPreviewCard>
                     ),
                     decoration: BoxDecoration(
                       color: result.category.color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: theme.borderRadiusLarge,
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -404,7 +404,7 @@ class _BMIRangeIndicator extends StatelessWidget {
         Container(
           height: 8,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: theme.borderRadiusXSmall,
           ),
           child: CustomPaint(
             painter: _BMIRangePainter(

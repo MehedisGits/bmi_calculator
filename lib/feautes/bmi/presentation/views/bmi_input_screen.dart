@@ -5,7 +5,6 @@ import 'package:animate_do/animate_do.dart';
 import '../../../../core/services/theme_service.dart';
 import '../../../../core/services/navigation_service.dart';
 import '../../../../core/utils/responsive_layout.dart';
-import '../providers/bmi_input_provider.dart';
 import '../widgets/bmi_input_form.dart';
 import '../widgets/bmi_help_button.dart';
 import '../widgets/bmi_error_display.dart';
@@ -43,37 +42,39 @@ class BMIInputScreenContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.themeService;
     
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Compact Header
-          FadeInDown(
-            duration: theme.fastAnimation,
-            child: _CompactHeader(),
-          ),
-          
-          SizedBox(height: theme.spaceLarge),
-
-          // Error Display (if any)
-          const BMIErrorDisplay(),
-
-          // Enhanced BMI Input Form
-          FadeInUp(
-            duration: theme.mediumAnimation,
-            delay: Duration(milliseconds: 200),
-            child: BMIInputForm(
-              onNavigateToResult: onNavigateToResult,
+    return SafeArea(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Compact Header
+            FadeInDown(
+              duration: theme.fastAnimation,
+              child: _CompactHeader(),
             ),
-          ),
-          
-          // Bottom padding for safe area
-          SizedBox(
-            height: MediaQuery.of(context).padding.bottom + theme.spaceMedium,
-          ),
-        ],
+            
+            SizedBox(height: theme.spaceLarge),
+      
+            // Error Display (if any)
+            const BMIErrorDisplay(),
+      
+            // Enhanced BMI Input Form
+            FadeInUp(
+              duration: theme.mediumAnimation,
+              delay: Duration(milliseconds: 200),
+              child: BMIInputForm(
+                onNavigateToResult: onNavigateToResult,
+              ),
+            ),
+            
+            // Bottom padding for safe area
+            SizedBox(
+              height: MediaQuery.of(context).padding.bottom + theme.spaceMedium,
+            ),
+          ],
+        ),
       ),
     );
   }

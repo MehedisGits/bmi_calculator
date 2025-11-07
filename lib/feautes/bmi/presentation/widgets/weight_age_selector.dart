@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/theme_service.dart';
 import '../../../../core/services/haptic_service.dart';
+import '../../../../core/widgets/input_label.dart';
 
-/// Enhanced weight and age selector with visual dots and unified counter design
-/// Provides consistent interaction pattern with micro-interactions and haptic feedback
+/// Enhanced weight and age selector with improved UX
+/// Simplified design with progress bar and larger buttons for better accessibility
 class WeightAgeSelector extends ConsumerStatefulWidget {
   final double value;
   final double min;
@@ -31,24 +32,13 @@ class WeightAgeSelector extends ConsumerStatefulWidget {
 class _WeightAgeSelectorState extends ConsumerState<WeightAgeSelector>
     with TickerProviderStateMixin {
   late AnimationController _scaleController;
-  late AnimationController _dotsController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _dotsAnimation;
 
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
-  }
-
-  void _initializeAnimations() {
     _scaleController = AnimationController(
       duration: const Duration(milliseconds: 150),
-      vsync: this,
-    );
-
-    _dotsController = AnimationController(
-      duration: const Duration(milliseconds: 200),
       vsync: this,
     );
 
@@ -59,20 +49,11 @@ class _WeightAgeSelectorState extends ConsumerState<WeightAgeSelector>
       parent: _scaleController,
       curve: Curves.easeOut,
     ));
-
-    _dotsAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _dotsController,
-      curve: Curves.easeInOut,
-    ));
   }
 
   @override
   void dispose() {
     _scaleController.dispose();
-    _dotsController.dispose();
     super.dispose();
   }
 
@@ -97,7 +78,6 @@ class _WeightAgeSelectorState extends ConsumerState<WeightAgeSelector>
   void _triggerFeedback() {
     ref.read(hapticServiceProvider).light();
     _scaleController.forward().then((_) => _scaleController.reverse());
-    _dotsController.forward().then((_) => _dotsController.reverse());
   }
 
   @override
@@ -106,7 +86,7 @@ class _WeightAgeSelectorState extends ConsumerState<WeightAgeSelector>
     final color = widget.unit == 'kg' ? theme.healthPrimary : theme.healthSecondary;
     
     return AnimatedBuilder(
-      animation: Listenable.merge([_scaleAnimation, _dotsAnimation]),
+      animation: _scaleAnimation,
       builder: (context, child) {
         return Transform.scale(
           scale: _scaleAnimation.value,
@@ -116,41 +96,31 @@ class _WeightAgeSelectorState extends ConsumerState<WeightAgeSelector>
               color: theme.colorScheme.surfaceContainerLow,
               borderRadius: theme.borderRadiusMedium,
               border: Border.all(
-                color: color.withOpacity(0.2 + (_dotsAnimation.value * 0.3)),
-                width: 1,
+                color: color.withOpacity(0.2),
+                width: theme.borderWidthNormal,
               ),
-              boxShadow: [
-                if (_dotsAnimation.value > 0)
-                  BoxShadow(
-                    color: color.withOpacity(0.1 * _dotsAnimation.value),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-              ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Label row
-                _CounterLabel(
+                // Label
+                InputLabel(
                   icon: widget.unit == 'kg' ? '⚖️' : '🎂',
                   label: widget.unit == 'kg' ? 'Weight' : 'Age',
-                  theme: theme,
                 ),
                 
                 SizedBox(height: theme.spaceSmall),
                 
-                // Visual dots representation
-                _VisualDots(
+                // Progress bar
+                _ProgressBar(
                   value: widget.value,
                   min: widget.min,
                   max: widget.max,
                   color: color,
-                  animation: _dotsAnimation.value,
                   theme: theme,
                 ),
                 
-                SizedBox(height: theme.spaceSmall),
+                SizedBox(height: theme.spaceMedium),
                 
                 // Value display and controls
                 Row(
@@ -163,29 +133,37 @@ class _WeightAgeSelectorState extends ConsumerState<WeightAgeSelector>
                       theme: theme,
                     ),
                     
-                    // Current value
+                    // Current value with improved styling
                     Container(
                       padding: EdgeInsets.symmetric(
-                        horizontal: theme.paddingSmall,
-                        vertical: theme.paddingXS,
+                        horizontal: theme.paddingMedium,
+                        vertical: theme.paddingSmall,
                       ),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            color.withOpacity(0.1),
-                            color.withOpacity(0.05),
-                          ],
+                        color: color.withOpacity(0.1),
+                        borderRadius: theme.borderRadiusMedium,
+                        border: Border.all(
+                          color: color.withOpacity(0.2),
+                          width: theme.borderWidthNormal,
                         ),
-                        borderRadius: theme.borderRadiusSmall,
                       ),
                       child: Text(
                         widget.isInteger 
-                            ? '${widget.value.toInt()} ${widget.unit}'
-                            : '${widget.value.toStringAsFixed(1)} ${widget.unit}',
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
+                            ? '${widget.value.toInt()}'
+                            : '${widget.value.toStringAsFixed(1)}',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
                           color: color,
+                          letterSpacing: -0.5,
                         ),
+                      ),
+                    ),
+                    
+                    Text(
+                      ' ${widget.unit}',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     
@@ -206,111 +184,60 @@ class _WeightAgeSelectorState extends ConsumerState<WeightAgeSelector>
   }
 }
 
-/// Counter label with icon and text
-class _CounterLabel extends StatelessWidget {
-  final String icon;
-  final String label;
-  final ThemeService theme;
-
-  const _CounterLabel({
-    required this.icon,
-    required this.label,
-    required this.theme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          icon,
-          style: theme.textTheme.titleMedium?.copyWith(fontSize: 16),
-        ),
-        SizedBox(width: theme.spaceXS / 2),
-        Text(
-          label,
-          style: theme.textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w500,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Visual dots representation following UX strategy
-class _VisualDots extends StatelessWidget {
+/// Simple progress bar for visual feedback
+class _ProgressBar extends StatelessWidget {
   final double value;
   final double min;
   final double max;
   final Color color;
-  final double animation;
   final ThemeService theme;
 
-  const _VisualDots({
+  const _ProgressBar({
     required this.value,
     required this.min,
     required this.max,
     required this.color,
-    required this.animation,
     required this.theme,
   });
 
   @override
   Widget build(BuildContext context) {
-    const dotCount = 10;
     final normalizedValue = ((value - min) / (max - min)).clamp(0.0, 1.0);
-    final activeDots = (normalizedValue * dotCount).round();
     
     return SizedBox(
-      height: 20,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(dotCount, (index) {
-          final isActive = index < activeDots;
-          final animationOffset = (index / dotCount) * 0.2;
-          final currentAnimation = (animation - animationOffset).clamp(0.0, 1.0);
-          
-          return AnimatedContainer(
-            duration: Duration(milliseconds: 100 + (index * 20)),
-            width: isActive ? (8 + (2 * currentAnimation)) : 6,
-            height: isActive ? (8 + (2 * currentAnimation)) : 6,
-            margin: EdgeInsets.symmetric(horizontal: 1.5),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: isActive
-                  ? LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        color.withOpacity(0.8 + (0.2 * currentAnimation)),
-                        color.withOpacity(0.6 + (0.2 * currentAnimation)),
-                      ],
-                    )
-                  : null,
-              color: isActive 
-                  ? null 
-                  : theme.colorScheme.onSurfaceVariant.withOpacity(0.2),
-              boxShadow: isActive && currentAnimation > 0
-                  ? [
-                      BoxShadow(
-                        color: color.withOpacity(0.4 * currentAnimation),
-                        blurRadius: 4 * currentAnimation,
-                        spreadRadius: 1 * currentAnimation,
-                      ),
-                    ]
-                  : null,
-            ),
-          );
-        }),
+      height: 8,
+      child: ClipRRect(
+        borderRadius: theme.borderRadiusSmall,
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+          ),
+          child: Stack(
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                alignment: Alignment.centerLeft,
+                width: double.infinity * normalizedValue,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      color.withOpacity(0.8),
+                      color.withOpacity(0.5),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-/// Counter button with consistent styling
+/// Counter button with larger size for better accessibility
 class _CounterButton extends StatefulWidget {
   final IconData icon;
   final VoidCallback? onPressed;
@@ -337,12 +264,12 @@ class _CounterButtonState extends State<_CounterButton>
   void initState() {
     super.initState();
     _pressController = AnimationController(
-      duration: const Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 150),
       vsync: this,
     );
     _pressAnimation = Tween<double>(
       begin: 1.0,
-      end: 0.9,
+      end: 0.95,
     ).animate(_pressController);
   }
 
@@ -359,42 +286,34 @@ class _CounterButtonState extends State<_CounterButton>
       builder: (context, child) {
         return Transform.scale(
           scale: _pressAnimation.value,
-          child: GestureDetector(
-            onTapDown: (_) => _pressController.forward(),
-            onTapUp: (_) => _pressController.reverse(),
-            onTapCancel: () => _pressController.reverse(),
-            onTap: widget.onPressed,
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                gradient: widget.onPressed != null
-                    ? LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          widget.color.withOpacity(0.1),
-                          widget.color.withOpacity(0.05),
-                        ],
-                      )
-                    : null,
-                color: widget.onPressed == null
-                    ? widget.theme.colorScheme.surfaceContainerHighest
-                    : null,
-                borderRadius: widget.theme.borderRadiusSmall,
-                border: Border.all(
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: widget.theme.borderRadiusMedium,
+            child: InkWell(
+              borderRadius: widget.theme.borderRadiusMedium,
+              onTap: widget.onPressed,
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
                   color: widget.onPressed != null
-                      ? widget.color.withOpacity(0.3)
-                      : widget.theme.colorScheme.outlineVariant.withOpacity(0.5),
-                  width: 1,
+                      ? widget.color.withOpacity(0.1)
+                      : widget.theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: widget.theme.borderRadiusMedium,
+                  border: Border.all(
+                    color: widget.onPressed != null
+                        ? widget.color.withOpacity(0.3)
+                        : widget.theme.colorScheme.outlineVariant.withOpacity(0.5),
+                    width: widget.theme.borderWidthNormal,
+                  ),
                 ),
-              ),
-              child: Icon(
-                widget.icon,
-                size: widget.theme.iconSizeSmall,
-                color: widget.onPressed != null
-                    ? widget.color
-                    : widget.theme.colorScheme.onSurfaceVariant,
+                child: Icon(
+                  widget.icon,
+                  size: widget.theme.iconSizeMedium,
+                  color: widget.onPressed != null
+                      ? widget.color
+                      : widget.theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ),

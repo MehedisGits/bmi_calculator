@@ -74,14 +74,27 @@ class ThemeService {
   BorderRadius get inputRadius => AppRadius.input;
   
   // Additional border radius getters for consistency
+  BorderRadius get borderRadiusXXS => BorderRadius.circular(AppSizes.radiusXXS);
+  BorderRadius get borderRadiusXSmall => BorderRadius.circular(AppSizes.radiusXSmall);
   BorderRadius get borderRadiusSmall => BorderRadius.circular(AppSizes.radiusSmall);
   BorderRadius get borderRadiusMedium => BorderRadius.circular(AppSizes.radiusMedium);
   BorderRadius get borderRadiusLarge => BorderRadius.circular(AppSizes.radiusLarge);
+  BorderRadius get borderRadiusXLarge => BorderRadius.circular(AppSizes.radiusXLarge);
+  BorderRadius get borderRadiusXXLarge => BorderRadius.circular(AppSizes.radiusXXLarge);
+
+  // MARK: - Border Width
+  double get borderWidthThin => AppSizes.borderWidthThin;
+  double get borderWidthNormal => AppSizes.borderWidthNormal;
+  double get borderWidthThick => AppSizes.borderWidthThick;
+  double get borderWidthThickest => AppSizes.borderWidthThickest;
 
   // MARK: - Component Sizes
+  double get buttonHeightXSmall => AppSizes.buttonHeightXSmall;
   double get buttonHeight => AppSizes.buttonHeight;
   double get buttonHeightSmall => AppSizes.buttonHeightSmall;
   double get buttonHeightLarge => AppSizes.buttonHeightLarge;
+  double get buttonHeightXLarge => AppSizes.buttonHeightXLarge;
+  double get inputHeight => AppSizes.inputHeight;
   double get bmiScoreSize => AppSizes.bmiScoreSize;
   double get healthTipCardHeight => AppSizes.healthTipCardHeight;
   double get sliderHeight => AppSizes.sliderHeight;

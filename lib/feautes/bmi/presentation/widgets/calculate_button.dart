@@ -160,7 +160,7 @@ class _CalculateButtonState extends ConsumerState<CalculateButton>
             onTapCancel: () => isEnabled ? _scaleController.reverse() : null,
             onTap: _onPressed,
             child: Container(
-              height: 64,
+              height: theme.buttonHeightXLarge,
               margin: EdgeInsets.symmetric(horizontal: theme.paddingMedium),
               decoration: BoxDecoration(
                 gradient: _buildGradient(theme, result, isEnabled),
@@ -371,7 +371,7 @@ class _ButtonContent extends StatelessWidget {
         ),
         SizedBox(width: theme.spaceSmall),
         Text(
-          'Get Health Intelligence',
+          'Get Health Insights',
           style: theme.textTheme.titleMedium?.copyWith(
             color: isEnabled ? Colors.white : theme.colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,

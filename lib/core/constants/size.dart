@@ -48,7 +48,8 @@ class AppSizes {
 
   // MARK: - Border Radius
   /// Consistent border radius for different components
-  static const double radiusXS = 4;
+  static const double radiusXXS = 2;
+  static const double radiusXSmall = 4;
   static const double radiusSmall = 8;
   static const double radiusMedium = 12;
   static const double radiusLarge = 16;
@@ -56,11 +57,20 @@ class AppSizes {
   static const double radiusXXLarge = 32;
   static const double radiusRound = 100;
 
+  // MARK: - Border Width
+  /// Consistent border widths
+  static const double borderWidthThin = 0.5;
+  static const double borderWidthNormal = 1.0;
+  static const double borderWidthThick = 1.5;
+  static const double borderWidthThickest = 2.0;
+
   // MARK: - Component Heights
   /// Standard heights for interactive components
-  static const double buttonHeightSmall = 32;
+  static const double buttonHeightXSmall = 32;
+  static const double buttonHeightSmall = 40;
   static const double buttonHeight = 48;
   static const double buttonHeightLarge = 56;
+  static const double buttonHeightXLarge = 64;
   static const double inputHeight = 56;
   static const double cardHeightSmall = 80;
   static const double cardHeightMedium = 120;

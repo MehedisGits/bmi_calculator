@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/theme_service.dart';
 import '../../../../core/services/haptic_service.dart';
 import '../../../../core/config/bmi_config.dart';
+import '../../../../core/widgets/input_label.dart';
 
 /// Enhanced height slider with visual progress and real-time feedback
 /// Provides immediate visual progress indication and smooth micro-interactions
@@ -35,19 +36,14 @@ class _HeightSliderState extends ConsumerState<HeightSlider>
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
-  }
-
-  void _initializeAnimations() {
     _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 600), // Reduced duration
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
 
-    // Reduced animation scale for professional look
     _pulseAnimation = Tween<double>(
       begin: 1.0,
-      end: 1.02, // Reduced from 1.05 to 1.02
+      end: 1.02,
     ).animate(CurvedAnimation(
       parent: _pulseController,
       curve: Curves.easeInOut,
@@ -95,9 +91,10 @@ class _HeightSliderState extends ConsumerState<HeightSlider>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Label with current value
-        _HeightLabel(
-          value: widget.value,
-          theme: theme,
+        InputLabel(
+          icon: '📏',
+          label: 'Height:',
+          value: '${widget.value.toInt()} cm',
         ),
         
         SizedBox(height: theme.spaceSmall),
@@ -106,9 +103,9 @@ class _HeightSliderState extends ConsumerState<HeightSlider>
         LayoutBuilder(
           builder: (context, constraints) {
             final trackWidth = constraints.maxWidth;
-            const trackHeight = 48.0;
-            const thumbWidth = 24.0;
-            const padding = 16.0;
+            final trackHeight = theme.sliderHeight;
+            final thumbWidth = theme.iconSizeMedium;
+            final padding = theme.paddingMedium;
             
             final availableWidth = trackWidth - padding * 2 - thumbWidth;
             final progressWidth = availableWidth * progress;
@@ -204,7 +201,7 @@ class _HeightSliderState extends ConsumerState<HeightSlider>
                         AnimatedPositioned(
                           duration: _isInteracting 
                               ? Duration.zero 
-                              : theme.fastAnimation,
+                              : theme.mediumAnimation,
                           left: thumbPosition.clamp(padding, trackWidth - padding - thumbWidth),
                           top: 8,
                           bottom: 8,
@@ -215,7 +212,7 @@ class _HeightSliderState extends ConsumerState<HeightSlider>
                               borderRadius: theme.borderRadiusSmall,
                               border: Border.all(
                                 color: theme.healthPrimary,
-                                width: 2,
+                                width: theme.borderWidthThickest,
                               ),
                               boxShadow: [
                                 BoxShadow(
@@ -228,7 +225,7 @@ class _HeightSliderState extends ConsumerState<HeightSlider>
                             child: Center(
                               child: Icon(
                                 Icons.height,
-                                size: 16,
+                                size: theme.iconSizeSmall,
                                 color: theme.healthPrimary,
                               ),
                             ),
@@ -303,61 +300,6 @@ class _ProgressMarkers extends StatelessWidget {
   }
 }
 
-// ... existing _RangeIndicators class remains the same ...
-
-/// Height label with emoji and current value display
-class _HeightLabel extends StatelessWidget {
-  final double value;
-  final ThemeService theme;
-
-  const _HeightLabel({
-    required this.value,
-    required this.theme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          '📏',
-          style: theme.textTheme.titleMedium?.copyWith(fontSize: 18),
-        ),
-        SizedBox(width: theme.spaceXS),
-        Text(
-          'Height:',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-        const Spacer(),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: theme.paddingSmall,
-            vertical: theme.paddingXS,
-          ),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                theme.healthPrimary.withOpacity(0.1),
-                theme.healthSecondary.withOpacity(0.1),
-              ],
-            ),
-            borderRadius: theme.borderRadiusSmall,
-          ),
-          child: Text(
-            '${value.toInt()} cm',
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: theme.healthPrimary,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
 /// Range indicators showing min and max values
 class _RangeIndicators extends StatelessWidget {
   final double minValue;
